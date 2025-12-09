@@ -1,27 +1,21 @@
-# ---------- BUILD STAGE ----------
-FROM maven:3.8.5-eclipse-temurin-17 AS build
- 
+# Stage 1: Build
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
- 
-# Copy only pom.xml first (for caching)
-COPY sales/pom.xml .
- 
-RUN mvn dependency:go-offline -B
- 
-# Copy full backend source
-COPY sales/. .
- 
+
+# Copy pom.xml from SlaesErp folder
+COPY SlaesErp/pom.xml .
+
+# Copy backend source
+COPY SlaesErp/. .
+
 # Build jar
-RUN mvn package -DskipTests -B
- 
- 
-# ---------- RUNTIME STAGE ----------
+RUN mvn -B package -DskipTests
+
+# Stage 2: Run
 FROM eclipse-temurin:17-jre
- 
 WORKDIR /app
- 
+
 COPY --from=build /app/target/*.jar app.jar
- 
+
 EXPOSE 8080
- 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["java", "-jar", "app.jar"]
